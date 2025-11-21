@@ -1,0 +1,29 @@
+name: CI/CD with Docker on Self-Hosted Runner
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t myapp:latest .
+
+      - name: Stop old container if it exists
+        run: |
+          if [ "$(docker ps -aq -f name=myapp)" ]; then
+            docker stop myapp || true
+            docker rm myapp || true
+          fi
+
+      - name: Run new container
+        run: |
+          docker run -d --name myapp -p 3000:3000 myapp:latest
